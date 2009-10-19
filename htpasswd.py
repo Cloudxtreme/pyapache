@@ -8,7 +8,8 @@ Released under the terms of the BSD license.
 A collection of classes and functions to manipulate apache htaccess files.
 """
 
-__all__ = [ "generate_user" ]
+__all__ = ["generate_user"]
+
 
 def hash_password(passwd, ctype="crypt"):
     """Create an Apache-style password hash.
@@ -25,9 +26,10 @@ def hash_password(passwd, ctype="crypt"):
     elif ctype is "md5":
         from apachelib.password import md5_password
         return md5_password(passwd)
-    
+
     # We should never get here
     raise ValueError("%s is not a valid value for ctype." % ctype)
+
 
 def generate_user(username, passwd, ctype="crypt"):
     """Generate a single htaccess line.

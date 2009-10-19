@@ -12,7 +12,7 @@ little bit wierd.
 
 This is a pythonic adaption of the C code in the APR library.
 If there are any questions please refer directly to the C code.
-You'll find it in apache subversion under 
+You'll find it in apache subversion under
 /ap/apr-util/crypto/apr_md5.c
 """
 
@@ -21,10 +21,11 @@ from hashlib import md5
 from random import random
 from math import floor
 
-__all__ = [ "generate_md5", "generate_salt", "generate_short_salt" ]
+__all__ = ["generate_md5", "generate_salt", "generate_short_salt"]
 
 # Defined as such for brevity
 md5digest = lambda x: md5(x).digest()
+
 
 def ap_to64(input, count=4):
     """Weird-ass implementation of base64 conversion used by the
@@ -33,18 +34,20 @@ def ap_to64(input, count=4):
     chars = "./0123456789%s%s" % (string.uppercase, string.lowercase)
     output = ""
     input = int(input) # Need ints to do binary math
-    
+
     for i in range(0, count):
         output += chars[input & 0x3f] # Take 6 bits right
         input >>= 6 # shift by 6 bits
 
     return output
 
+
 def generate_short_salt():
     """Generate a short, 2-character salt.
     This is suitable for use in the htpasswd crypt routine.
     """
     return generate_salt()[0:2]
+
 
 def generate_salt():
     """Mine a little salt for your passwords.
@@ -54,6 +57,7 @@ def generate_salt():
     salt = ap_to64(floor(random() * 16777215))
     salt += ap_to64(floor(random() * 16777215))
     return salt
+
 
 def generate_md5(passwd, salt=None):
     """Generate an APRfied MD5 hash.
@@ -66,10 +70,10 @@ def generate_md5(passwd, salt=None):
     # I don't think it is really "checked" by Apache but I'm too
     # lazy to confirm this.
     MAGIC_TOKEN = "$apr1$"
-    
+
     # Mainly just used for testing but why not leave it?
     salt = salt if salt else generate_salt()
-    
+
     # Start with our password in the clear, a little magic and
     # a pinch of salt
     message = "%s%s%s" % (passwd, MAGIC_TOKEN, salt)
@@ -89,21 +93,21 @@ def generate_md5(passwd, salt=None):
             message += chr(0)
         else:
             message += passwd[0]
-        passlen >>= 1 
+        passlen >>= 1
 
     retval = md5digest(message)
-    
+
     for i in range(0, 1000):
         if i & 1:
             message = passwd
         else:
             message = retval[0:16]
-        
+
         if i % 3:
             message += salt
 
         if i % 7:
-            message += passwd        
+            message += passwd
 
         if i & 1:
             message += retval[0:16]
@@ -111,7 +115,7 @@ def generate_md5(passwd, salt=None):
             message += passwd
 
         retval = md5digest(message)
-    
+
     # Now make the output string
     output = ap_to64((ord(retval[0]) << 16) | (ord(retval[6]) << 8) | ord(retval[12]))
     output += ap_to64((ord(retval[1]) << 16) | (ord(retval[7]) << 8) | ord(retval[13]))
@@ -121,6 +125,7 @@ def generate_md5(passwd, salt=None):
     output += ap_to64(ord(retval[11]), 2)
 
     return "%s%s$%s" % (MAGIC_TOKEN, salt, output)
+
 
 def test_driver():
     """Run this to verify that the library is functioning properly.
